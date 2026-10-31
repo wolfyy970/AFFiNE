@@ -1,5 +1,6 @@
 import { Button } from '@affine/component';
 import { AuthHeader } from '@affine/component/auth-components';
+import { useCanCreateCloudWorkspace } from '@affine/core/components/hooks/affine/use-can-create-cloud-workspace';
 import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
 import { useWorkspaceName } from '@affine/core/components/hooks/use-workspace-info';
 import { WorkspaceSelector } from '@affine/core/components/workspace-selector';
@@ -42,6 +43,7 @@ export const Component = () => {
   const t = useI18n();
   const session = useService(AuthService).session;
   const notLogin = useLiveData(session.status$) === 'unauthenticated';
+  const canCreateCloudWorkspace = useCanCreateCloudWorkspace();
 
   const [importing, setImporting] = useState(false);
   const [importingError, setImportingError] = useState<any>(null);
@@ -133,7 +135,7 @@ export const Component = () => {
   ]);
 
   const handleImportToNewWorkspace = useAsyncCallback(async () => {
-    if (!clipperInputSnapshot) {
+    if (!clipperInputSnapshot || !canCreateCloudWorkspace) {
       return;
     }
     setImporting(true);
@@ -149,7 +151,12 @@ export const Component = () => {
     } finally {
       setImporting(false);
     }
-  }, [clipperInputSnapshot, handleSuccess, importClipperService]);
+  }, [
+    canCreateCloudWorkspace,
+    clipperInputSnapshot,
+    handleSuccess,
+    importClipperService,
+  ]);
 
   const handleClickSignIn = useCallback(() => {
     window.open(
@@ -268,7 +275,7 @@ export const Component = () => {
                 workspace: selectedWorkspaceName,
               })}
           </Button>
-        ) : (
+        ) : canCreateCloudWorkspace ? (
           <Button
             className={styles.mainButton}
             variant="primary"
@@ -278,6 +285,10 @@ export const Component = () => {
           >
             {t['com.affine.import-clipper.dialog.createDocToNewWorkspace']()}
           </Button>
+        ) : (
+          <span style={{ color: cssVar('warningColor') }}>
+            {t['com.affine.import-clipper.dialog.errorImport']()}
+          </span>
         )}
       </div>
     </div>

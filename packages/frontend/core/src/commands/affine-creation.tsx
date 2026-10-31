@@ -11,10 +11,13 @@ export function registerAffineCreationCommands({
   pageHelper,
   t,
   globalDialogService,
+  canCreateWorkspace = true,
 }: {
   t: ReturnType<typeof useI18n>;
   pageHelper: ReturnType<typeof usePageHelper>;
   globalDialogService: GlobalDialogService;
+  /** Local and/or cloud create allowed for the current user/server. */
+  canCreateWorkspace?: boolean;
 }) {
   const unsubs: Array<() => void> = [];
   unsubs.push(
@@ -53,7 +56,7 @@ export function registerAffineCreationCommands({
     })
   );
 
-  if (!BUILD_CONFIG.isMobileEdition) {
+  if (!BUILD_CONFIG.isMobileEdition && canCreateWorkspace) {
     unsubs.push(
       registerAffineCommand({
         id: 'affine:new-workspace',

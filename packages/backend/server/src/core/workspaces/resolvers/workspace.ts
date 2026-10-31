@@ -212,6 +212,8 @@ export class WorkspaceResolver {
     @Args({ name: 'init', type: () => GraphQLUpload, nullable: true })
     init: FileUpload | null
   ) {
+    await this.workspaceService.assertCanCreateWorkspace(user.id);
+
     const workspace = await this.models.workspace.create(user.id);
 
     if (init) {

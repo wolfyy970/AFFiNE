@@ -1,3 +1,4 @@
+import { useCanCreateCloudWorkspace } from '@affine/core/components/hooks/affine/use-can-create-cloud-workspace';
 import { DefaultServerService } from '@affine/core/modules/cloud';
 import { DesktopApiService } from '@affine/core/modules/desktop-api';
 import { WorkspacesService } from '@affine/core/modules/workspace';
@@ -65,6 +66,7 @@ export const Component = ({
           BUILD_CONFIG.isNative
       )
     ) ?? true;
+  const canCreateCloudWorkspace = useCanCreateCloudWorkspace();
 
   const workspacesService = useService(WorkspacesService);
   const list = useLiveData(workspacesService.list.workspaces$);
@@ -77,6 +79,7 @@ export const Component = ({
 
   const createCloudWorkspace = useCallback(() => {
     if (createOnceRef.current) return;
+    if (!canCreateCloudWorkspace) return;
     createOnceRef.current = true;
     // TODO: support selfhosted
     buildShowcaseWorkspace(workspacesService, 'affine-cloud', 'AFFiNE Cloud')
@@ -88,7 +91,13 @@ export const Component = ({
         }
       })
       .catch(err => console.error('Failed to create cloud workspace', err));
-  }, [defaultIndexRoute, jumpToPage, openPage, workspacesService]);
+  }, [
+    canCreateCloudWorkspace,
+    defaultIndexRoute,
+    jumpToPage,
+    openPage,
+    workspacesService,
+  ]);
 
   useLayoutEffect(() => {
     if (!navigating) {

@@ -1,4 +1,5 @@
 import { Button, Modal } from '@affine/component';
+import { useCanCreateCloudWorkspace } from '@affine/core/components/hooks/affine/use-can-create-cloud-workspace';
 import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
 import { useNavigateHelper } from '@affine/core/components/hooks/use-navigate-helper';
 import { useWorkspaceName } from '@affine/core/components/hooks/use-workspace-info';
@@ -40,6 +41,7 @@ const Dialog = ({
   const session = useService(AuthService).session;
   const notLogin = useLiveData(session.status$) === 'unauthenticated';
   const isSessionRevalidating = useLiveData(session.isRevalidating$);
+  const canCreateCloudWorkspace = useCanCreateCloudWorkspace();
 
   const [importing, setImporting] = useState(false);
   const [importingError, setImportingError] = useState<any>(null);
@@ -137,7 +139,7 @@ const Dialog = ({
   ]);
 
   const handleImportToNewWorkspace = useAsyncCallback(async () => {
-    if (!templateDownloader.data$.value) {
+    if (!templateDownloader.data$.value || !canCreateCloudWorkspace) {
       return;
     }
     setImporting(true);
@@ -157,6 +159,7 @@ const Dialog = ({
       setImporting(false);
     }
   }, [
+    canCreateCloudWorkspace,
     importTemplateService,
     onClose,
     openPage,
@@ -221,7 +224,7 @@ const Dialog = ({
               workspace: selectedWorkspaceName,
             })}
         </Button>
-      ) : (
+      ) : canCreateCloudWorkspace ? (
         <Button
           className={styles.mainButton}
           variant="primary"
@@ -231,6 +234,10 @@ const Dialog = ({
         >
           {t['com.affine.import-template.dialog.createDocToNewWorkspace']()}
         </Button>
+      ) : (
+        <span style={{ color: cssVar('warningColor') }}>
+          {t['com.affine.import-template.dialog.errorImport']()}
+        </span>
       )}
     </>
   );

@@ -1,5 +1,6 @@
 import { IconButton, Menu, MenuItem } from '@affine/component';
 import { Divider } from '@affine/component/ui/divider';
+import { useCanCreateCloudWorkspace } from '@affine/core/components/hooks/affine/use-can-create-cloud-workspace';
 import { useEnableCloud } from '@affine/core/components/hooks/affine/use-enable-cloud';
 import { useSignOut } from '@affine/core/components/hooks/affine/use-sign-out';
 import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
@@ -238,6 +239,7 @@ export const AFFiNEWorkspaceList = ({
   const workspaces = useLiveData(workspacesService.list.workspaces$);
 
   const confirmEnableCloud = useEnableCloud();
+  const canCreateCloudWorkspace = useCanCreateCloudWorkspace();
 
   const serversService = useService(ServersService);
   const servers = useLiveData(serversService.servers$);
@@ -310,7 +312,9 @@ export const AFFiNEWorkspaceList = ({
         workspaces={localWorkspaces}
         onClickWorkspace={handleClickWorkspace}
         onClickEnableCloud={
-          showEnableCloudButton ? onClickEnableCloud : undefined
+          showEnableCloudButton && canCreateCloudWorkspace
+            ? onClickEnableCloud
+            : undefined
         }
       />
       {selfhostServers.length > 0 && (

@@ -1,4 +1,5 @@
 import { notify, useConfirmModal } from '@affine/component';
+import { useCanCreateCloudWorkspace } from '@affine/core/components/hooks/affine/use-can-create-cloud-workspace';
 import { AuthService, ServersService } from '@affine/core/modules/cloud';
 import { GlobalDialogService } from '@affine/core/modules/dialogs';
 import type { Workspace } from '@affine/core/modules/workspace';
@@ -33,6 +34,7 @@ export const useEnableCloud = () => {
   const workspacesService = useService(WorkspacesService);
   const serversService = useService(ServersService);
   const serverList = useLiveData(serversService.servers$);
+  const canCreateCloudWorkspace = useCanCreateCloudWorkspace();
 
   const { jumpToPage } = useNavigateHelper();
 
@@ -41,6 +43,12 @@ export const useEnableCloud = () => {
       try {
         if (!ws) return;
         if (!account) return;
+        if (!canCreateCloudWorkspace) {
+          notify.error({
+            title: t['com.affine.workspace.enable-cloud.failed'](),
+          });
+          return;
+        }
         const { id: newId } = await workspacesService.transformLocalToCloud(
           ws,
           account.id,
@@ -55,7 +63,7 @@ export const useEnableCloud = () => {
         });
       }
     },
-    [account, jumpToPage, t, workspacesService]
+    [account, canCreateCloudWorkspace, jumpToPage, t, workspacesService]
   );
 
   const openSignIn = useCallback(
@@ -82,6 +90,11 @@ export const useEnableCloud = () => {
 
   const confirmEnableCloud = useCallback(
     (ws: Workspace, options?: ConfirmEnableCloudOptions) => {
+      if (!canCreateCloudWorkspace) {
+        options?.onFinished?.();
+        return;
+      }
+
       const { onSuccess, onFinished, serverId, openPageId } = options ?? {};
 
       const closeOnSuccess = () => {
@@ -126,6 +139,7 @@ export const useEnableCloud = () => {
       );
     },
     [
+      canCreateCloudWorkspace,
       closeConfirmModal,
       globalDialogService,
       loginStatus,

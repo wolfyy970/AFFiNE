@@ -1,5 +1,11 @@
 import { Menu, MenuItem } from '@affine/component';
-import { type Server, ServersService } from '@affine/core/modules/cloud';
+import { useCanCreateCloudWorkspace } from '@affine/core/components/hooks/affine/use-can-create-cloud-workspace';
+import {
+  DefaultServerService,
+  type Server,
+  ServersService,
+} from '@affine/core/modules/cloud';
+import { ServerFeature } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import {
   ArrowDownSmallIcon,
@@ -8,7 +14,7 @@ import {
   LocalWorkspaceIcon,
   SelfhostIcon,
 } from '@blocksuite/icons/rc';
-import { useLiveData, useService } from '@toeverything/infra';
+import { FrameworkScope, useLiveData, useService } from '@toeverything/infra';
 import clsx from 'clsx';
 import {
   type HTMLAttributes,
@@ -40,6 +46,14 @@ export const ServerSelector = ({
 
   const serversService = useService(ServersService);
   const servers = useLiveData(serversService.servers$);
+  const defaultServerService = useService(DefaultServerService);
+  const enableLocalWorkspace = useLiveData(
+    defaultServerService.server.config$.selector(
+      c =>
+        c.features.includes(ServerFeature.LocalWorkspace) ||
+        BUILD_CONFIG.isNative
+    )
+  );
 
   const selectedServer = useMemo(() => {
     return servers.find(s => s.id === selectedId);
@@ -67,17 +81,20 @@ export const ServerSelector = ({
       }}
       items={
         <ul className={styles.list} data-testid="server-selector-list">
-          <LocalSelectorItem
-            onSelect={onChange}
-            active={selectedId === 'local'}
-          />
-          {servers.map(server => (
-            <ServerSelectorItem
-              key={server.id}
-              server={server}
+          {enableLocalWorkspace ? (
+            <LocalSelectorItem
               onSelect={onChange}
-              active={selectedId === server.id}
+              active={selectedId === 'local'}
             />
+          ) : null}
+          {servers.map(server => (
+            <FrameworkScope key={server.id} scope={server.scope}>
+              <ServerSelectorItem
+                server={server}
+                onSelect={onChange}
+                active={selectedId === server.id}
+              />
+            </FrameworkScope>
           ))}
         </ul>
       }
@@ -128,12 +145,17 @@ const ServerSelectorItem = ({
   active?: boolean;
 }) => {
   const name = useLiveData(server.config$.selector(c => c.serverName));
+  const canCreate = useCanCreateCloudWorkspace(server);
 
   const Icon = server.id === 'affine-cloud' ? CloudWorkspaceIcon : SelfhostIcon;
 
   const handleSelect = useCallback(() => {
     onSelect?.(server.id);
   }, [onSelect, server.id]);
+
+  if (!canCreate) {
+    return null;
+  }
 
   return (
     <MenuItem

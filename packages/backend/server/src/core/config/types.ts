@@ -11,6 +11,11 @@ export enum ServerFeature {
   Indexer = 'indexer',
   Comment = 'comment',
   LocalWorkspace = 'local_workspace',
+  /**
+   * Non-admin users may create cloud workspaces.
+   * When absent, only instance administrators can create cloud workspaces.
+   */
+  CreateWorkspace = 'create_workspace',
 }
 
 registerEnumType(ServerFeature, {

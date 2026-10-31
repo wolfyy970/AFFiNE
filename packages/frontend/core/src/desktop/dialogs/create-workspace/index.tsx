@@ -1,7 +1,9 @@
 import { Button, ConfirmModal, notify, RowInput } from '@affine/component';
+import { useCanCreateCloudWorkspace } from '@affine/core/components/hooks/affine/use-can-create-cloud-workspace';
 import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
 import {
   AuthService,
+  DefaultServerService,
   type Server,
   ServersService,
 } from '@affine/core/modules/cloud';
@@ -12,10 +14,11 @@ import {
 } from '@affine/core/modules/dialogs';
 import { WorkspacesService } from '@affine/core/modules/workspace';
 import { buildShowcaseWorkspace } from '@affine/core/utils/first-app-data';
+import { ServerFeature } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import track from '@affine/track';
 import { FrameworkScope, useLiveData, useService } from '@toeverything/infra';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import * as styles from './index.css';
 import { ServerSelector } from './server-selector';
@@ -41,15 +44,35 @@ export const CreateWorkspaceDialog = ({
   ...props
 }: DialogComponentProps<GLOBAL_DIALOG_SCHEMA['create-workspace']>) => {
   const t = useI18n();
+  const defaultServerService = useService(DefaultServerService);
+  const canCreateCloudWorkspace = useCanCreateCloudWorkspace();
+  const enableLocalWorkspace = useLiveData(
+    defaultServerService.server.config$.selector(
+      c =>
+        c.features.includes(ServerFeature.LocalWorkspace) ||
+        BUILD_CONFIG.isNative
+    )
+  );
+  const defaultFlavour = useMemo(() => {
+    if (serverId) return serverId;
+    if (canCreateCloudWorkspace) return 'affine-cloud';
+    if (enableLocalWorkspace) return 'local';
+    return 'affine-cloud';
+  }, [canCreateCloudWorkspace, enableLocalWorkspace, serverId]);
 
   const [workspaceName, setWorkspaceName] = useState('');
-  const [inputServerId, setInputServerId] = useState(
-    serverId ?? 'affine-cloud'
-  );
+  const [inputServerId, setInputServerId] = useState(defaultFlavour);
+
+  useEffect(() => {
+    if (serverId) return;
+    setInputServerId(defaultFlavour);
+  }, [defaultFlavour, serverId]);
 
   const serversService = useService(ServersService);
   const server = useLiveData(
-    inputServerId ? serversService.server$(inputServerId) : null
+    inputServerId && inputServerId !== 'local'
+      ? serversService.server$(inputServerId)
+      : null
   );
 
   const onOpenChange = useCallback(

@@ -4,6 +4,11 @@ import { defineModuleConfig } from '../../base';
 
 export interface ServerFlags {
   allowGuestDemoWorkspace: boolean;
+  /**
+   * When false, only instance administrators can create cloud workspaces.
+   * Local-only workspaces are unaffected.
+   */
+  allowNonAdminWorkspaceCreate: boolean;
 }
 
 declare global {
@@ -80,5 +85,9 @@ defineModuleConfig('flags', {
   allowGuestDemoWorkspace: {
     desc: 'Whether allow guest users to create demo workspaces.',
     default: true,
+  },
+  allowNonAdminWorkspaceCreate: {
+    desc: 'Whether non-admin signed-in users can create cloud workspaces. When false, only instance administrators can create cloud workspaces (local workspaces are unaffected).',
+    default: false,
   },
 });

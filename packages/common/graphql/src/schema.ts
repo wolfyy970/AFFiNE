@@ -2935,6 +2935,7 @@ export enum ServerFeature {
   Comment = 'Comment',
   Copilot = 'Copilot',
   CopilotEmbedding = 'CopilotEmbedding',
+  CreateWorkspace = 'CreateWorkspace',
   Indexer = 'Indexer',
   LocalWorkspace = 'LocalWorkspace',
   OAuth = 'OAuth',

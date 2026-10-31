@@ -12,6 +12,7 @@ import {
   Scrollable,
 } from '@affine/component';
 import { AuthPageContainer } from '@affine/component/auth-components';
+import { useCanCreateCloudWorkspace } from '@affine/core/components/hooks/affine/use-can-create-cloud-workspace';
 import { useSignOut } from '@affine/core/components/hooks/affine/use-sign-out';
 import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
 import { useNavigateHelper } from '@affine/core/components/hooks/use-navigate-helper';
@@ -91,9 +92,11 @@ export const UpgradeToTeam = ({ recurring }: { recurring: string | null }) => {
     setOpenUpgrade(true);
   }, []);
 
+  const canCreateCloudWorkspace = useCanCreateCloudWorkspace();
   const onClickCreateWorkspace = useCallback(() => {
+    if (!canCreateCloudWorkspace) return;
     setOpenCreate(true);
-  }, []);
+  }, [canCreateCloudWorkspace]);
 
   const revalidate = useCallback(() => {
     profile?.revalidate();
@@ -137,6 +140,7 @@ export const UpgradeToTeam = ({ recurring }: { recurring: string | null }) => {
               metas={workspaces}
               onSelect={setSelectedWorkspace}
               onClickCreateWorkspace={onClickCreateWorkspace}
+              canCreateWorkspace={canCreateCloudWorkspace}
             />
           }
           contentOptions={{
@@ -274,10 +278,12 @@ const WorkspaceSelector = ({
   metas,
   onSelect,
   onClickCreateWorkspace,
+  canCreateWorkspace = true,
 }: {
   metas: WorkspaceMetadata[];
   onClickCreateWorkspace: () => void;
   onSelect: (meta: WorkspaceMetadata) => void;
+  canCreateWorkspace?: boolean;
 }) => {
   const t = useI18n();
 
@@ -316,19 +322,23 @@ const WorkspaceSelector = ({
           {t['com.affine.upgrade-to-team-page.no-workspace-available']()}
         </div>
       )}
-      <Divider size="thinner" />
+      {canCreateWorkspace ? (
+        <>
+          <Divider size="thinner" />
 
-      <MenuItem
-        className={styles.createWorkspaceItem}
-        prefix={<NewPageIcon className={styles.itemIcon} fontSize={28} />}
-        onClick={onClickCreateWorkspace}
-      >
-        <div className={styles.itemContent}>
-          {t[
-            'com.affine.upgrade-to-team-page.workspace-selector.create-workspace'
-          ]()}
-        </div>
-      </MenuItem>
+          <MenuItem
+            className={styles.createWorkspaceItem}
+            prefix={<NewPageIcon className={styles.itemIcon} fontSize={28} />}
+            onClick={onClickCreateWorkspace}
+          >
+            <div className={styles.itemContent}>
+              {t[
+                'com.affine.upgrade-to-team-page.workspace-selector.create-workspace'
+              ]()}
+            </div>
+          </MenuItem>
+        </>
+      ) : null}
     </div>
   );
 };
