@@ -118,7 +118,15 @@ jobs:
           path: ./packages/backend/native
       - name: Build
         run: |
-          ls -alh ./packages/backend/native
+          # The bundler resolves all three per-arch requires in
+          # packages/backend/native/index.js. We only build x64, so the arm
+          # names get copies of it; the Dockerfile's docker-clean step drops
+          # every non-target arch from the image.
+          cd ./packages/backend/native
+          cp server-native.x64.node server-native.arm64.node
+          cp server-native.x64.node server-native.armv7.node
+          ls -alh
+          cd -
           yarn workspace @affine/server build
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
