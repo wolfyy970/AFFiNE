@@ -1,0 +1,204 @@
+# BetaBeta build of the AFFiNE server image (amd64 only).
+# Pushes ghcr.io/wolfyy970/affine:<short-sha> and :0.27.4-betabeta.
+# Security: read-only token by default, packages:write only on the push job,
+# every action pinned to a full commit SHA, no pull_request triggers, no secrets.
+name: BetaBeta image
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - betabeta
+
+permissions:
+  contents: read
+
+concurrency:
+  group: betabeta-image
+  cancel-in-progress: false
+
+env:
+  APP_VERSION: '0.27.4'
+  BUILD_TYPE: stable
+  IMAGE: ghcr.io/wolfyy970/affine
+  HUSKY: '0'
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+  ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+  SENTRYCLI_SKIP_DOWNLOAD: '1'
+  DO_NOT_TRACK: '1'
+
+jobs:
+  server-native:
+    name: Server native (x86_64)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: Set version
+        run: ./scripts/set-version.sh "$APP_VERSION"
+      - name: Install dependencies
+        run: yarn workspaces focus @affine/server-native
+      - name: Install Rust toolchain
+        run: |
+          TOOLCHAIN="$(grep 'channel' rust-toolchain.toml | head -1 | awk -F '"' '{print $2}')"
+          rustup toolchain install "$TOOLCHAIN" --profile minimal --target x86_64-unknown-linux-gnu
+          rustup show
+      - name: Build
+        env:
+          CC: clang -D_BSD_SOURCE
+          TARGET_CC: clang -D_BSD_SOURCE
+        run: |
+          yarn workspace @affine/server-native build --target x86_64-unknown-linux-gnu
+          mv ./packages/backend/native/server-native.node ./packages/backend/native/server-native.x64.node
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: server-native
+          path: ./packages/backend/native/server-native.x64.node
+          if-no-files-found: error
+          retention-days: 3
+
+  frontend:
+    name: Build @affine/${{ matrix.app }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - app: web
+            dist: packages/frontend/apps/web/dist
+          - app: admin
+            dist: packages/frontend/admin/dist
+          - app: mobile
+            dist: packages/frontend/apps/mobile/dist
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: Set version
+        run: ./scripts/set-version.sh "$APP_VERSION"
+      - name: Install dependencies
+        run: yarn install --immutable --inline-builds
+      - name: Build
+        run: yarn affine @affine/${{ matrix.app }} build
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ matrix.app }}
+          path: ${{ matrix.dist }}
+          if-no-files-found: error
+          retention-days: 3
+
+  server:
+    name: Build server
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    needs: server-native
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: Set version
+        run: ./scripts/set-version.sh "$APP_VERSION"
+      - name: Install dependencies
+        run: yarn workspaces focus @affine/server @types/affine__env
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: server-native
+          path: ./packages/backend/native
+      - name: Build
+        run: |
+          ls -alh ./packages/backend/native
+          yarn workspace @affine/server build
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: server-dist
+          path: ./packages/backend/server/dist
+          if-no-files-found: error
+          retention-days: 3
+
+  image:
+    name: Build and push image
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    needs: [server, frontend]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: server-dist
+          path: ./packages/backend/server/dist
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: web
+          path: ./packages/frontend/apps/web/dist
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: admin
+          path: ./packages/frontend/admin/dist
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: mobile
+          path: ./packages/frontend/apps/mobile/dist
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: Install production dependencies
+        run: |
+          yarn config set --json supportedArchitectures.cpu '["x64"]'
+          yarn config set --json supportedArchitectures.libc '["glibc"]'
+          yarn workspaces focus @affine/server --production
+      - name: Generate Prisma client
+        run: yarn workspace @affine/server prisma generate
+      - name: Move node_modules
+        run: mv ./node_modules ./packages/backend/server
+      - name: Set version
+        run: ./scripts/set-version.sh "$APP_VERSION"
+      - name: Tags
+        id: tags
+        run: |
+          echo "short=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build and push
+        id: push
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          file: .github/deployment/node/Dockerfile
+          platforms: linux/amd64
+          push: true
+          pull: true
+          provenance: false
+          sbom: false
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ env.APP_VERSION }}-betabeta
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.tags.outputs.short }}
+            ${{ env.IMAGE }}:${{ env.APP_VERSION }}-betabeta
+      - name: Digest
+        env:
+          DIGEST: ${{ steps.push.outputs.digest }}
+        run: |
+          echo "Image: $IMAGE@$DIGEST" | tee -a "$GITHUB_STEP_SUMMARY"
