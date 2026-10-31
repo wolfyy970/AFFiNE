@@ -30,7 +30,9 @@ env:
 jobs:
   server-native:
     name: Server native (x86_64)
-    runs-on: ubuntu-24.04
+    # The image is Debian bookworm (glibc 2.36). Build the native module on
+    # 22.04 (glibc 2.35), as upstream does; 24.04's glibc 2.39 won't load.
+    runs-on: ubuntu-22.04
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
