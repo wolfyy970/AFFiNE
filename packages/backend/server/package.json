@@ -83,7 +83,7 @@
     "get-stream": "^9.0.1",
     "google-auth-library": "^10.2.0",
     "graphql": "^16.13.2",
-    "graphql-scalars": "^1.24.0",
+    "graphql-scalars": "^2.0.1",
     "graphql-upload": "^17.0.0",
     "htmlrewriter": "^0.0.12",
     "http-errors": "^2.0.0",
