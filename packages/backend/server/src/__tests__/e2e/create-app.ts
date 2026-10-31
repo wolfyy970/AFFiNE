@@ -270,6 +270,11 @@ export async function createApp(
     throw error;
   }
   module.get(ConfigFactory).override({
+    // Preserve legacy createWorkspace GraphQL behavior for existing suites.
+    // Dedicated create-permission tests override this back to false.
+    flags: {
+      allowNonAdminWorkspaceCreate: true,
+    },
     storages: {
       avatar: {
         storage: {

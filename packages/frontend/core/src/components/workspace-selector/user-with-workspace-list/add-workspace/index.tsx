@@ -1,4 +1,5 @@
 import { MenuItem } from '@affine/component/ui/menu';
+import { useCanCreateCloudWorkspace } from '@affine/core/components/hooks/affine/use-can-create-cloud-workspace';
 import { DefaultServerService } from '@affine/core/modules/cloud';
 import { ServerFeature } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
@@ -23,6 +24,8 @@ export const AddWorkspace = ({
         BUILD_CONFIG.isNative
     )
   );
+  const canCreateCloudWorkspace = useCanCreateCloudWorkspace();
+  const canCreateWorkspace = enableLocalWorkspace || canCreateCloudWorkspace;
 
   return (
     <>
@@ -40,20 +43,22 @@ export const AddWorkspace = ({
           </div>
         </MenuItem>
       )}
-      <MenuItem
-        block={true}
-        prefixIcon={<PlusIcon />}
-        prefixIconClassName={styles.prefixIcon}
-        onClick={onNewWorkspace}
-        data-testid="new-workspace"
-        className={styles.ItemContainer}
-      >
-        <div className={styles.ItemText}>
-          {enableLocalWorkspace
-            ? t['com.affine.workspaceList.addWorkspace.create']()
-            : t['com.affine.workspaceList.addWorkspace.create-cloud']()}
-        </div>
-      </MenuItem>
+      {canCreateWorkspace ? (
+        <MenuItem
+          block={true}
+          prefixIcon={<PlusIcon />}
+          prefixIconClassName={styles.prefixIcon}
+          onClick={onNewWorkspace}
+          data-testid="new-workspace"
+          className={styles.ItemContainer}
+        >
+          <div className={styles.ItemText}>
+            {enableLocalWorkspace
+              ? t['com.affine.workspaceList.addWorkspace.create']()
+              : t['com.affine.workspaceList.addWorkspace.create-cloud']()}
+          </div>
+        </MenuItem>
+      ) : null}
     </>
   );
 };

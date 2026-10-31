@@ -1,5 +1,6 @@
 import { ScrollableContainer } from '@affine/component';
 import { MenuItem } from '@affine/component/ui/menu';
+import { useCanCreateCloudWorkspace } from '@affine/core/components/hooks/affine/use-can-create-cloud-workspace';
 import { AuthService, DefaultServerService } from '@affine/core/modules/cloud';
 import { GlobalDialogService } from '@affine/core/modules/dialogs';
 import { type WorkspaceMetadata } from '@affine/core/modules/workspace';
@@ -74,12 +75,17 @@ export const UserWithWorkspaceList = ({
     globalDialogService.open('sign-in', {});
   }, [globalDialogService]);
 
+  const canCreateCloudWorkspace = useCanCreateCloudWorkspace();
+
   const onNewWorkspace = useCallback(() => {
     const enableLocalWorkspace =
       BUILD_CONFIG.isNative ||
       defaultServerService.server.config$.value.features.includes(
         ServerFeature.LocalWorkspace
       );
+    if (!enableLocalWorkspace && !canCreateCloudWorkspace) {
+      return;
+    }
     if (!isAuthenticated && !enableLocalWorkspace) {
       return openSignInModal();
     }
@@ -91,6 +97,7 @@ export const UserWithWorkspaceList = ({
     });
     onEventEnd?.();
   }, [
+    canCreateCloudWorkspace,
     globalDialogService,
     defaultServerService,
     isAuthenticated,

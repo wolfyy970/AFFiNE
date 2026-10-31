@@ -1,4 +1,5 @@
 import { AppSidebarService } from '@affine/core/modules/app-sidebar';
+import { DefaultServerService } from '@affine/core/modules/cloud';
 import { DesktopApiService } from '@affine/core/modules/desktop-api';
 import {
   GlobalDialogService,
@@ -8,8 +9,10 @@ import { I18nService } from '@affine/core/modules/i18n';
 import { UrlService } from '@affine/core/modules/url';
 import { WorkbenchService } from '@affine/core/modules/workbench';
 import { WorkspaceService } from '@affine/core/modules/workspace';
+import { ServerFeature } from '@affine/graphql';
 import { useI18n } from '@affine/i18n';
 import {
+  useLiveData,
   useService,
   useServiceOptional,
   useServices,
@@ -32,6 +35,7 @@ import {
 } from '../../commands';
 import { EditorSettingService } from '../../modules/editor-setting';
 import { CMDKQuickSearchService } from '../../modules/quicksearch/services/cmdk';
+import { useCanCreateCloudWorkspace } from './affine/use-can-create-cloud-workspace';
 import { useNavigateHelper } from './use-navigate-helper';
 
 function registerCMDKCommand(service: CMDKQuickSearchService) {
@@ -78,6 +82,16 @@ export function useRegisterWorkspaceCommands() {
 
   const desktopApiService = useServiceOptional(DesktopApiService);
   const workbenchService = useServiceOptional(WorkbenchService);
+  const defaultServerService = useService(DefaultServerService);
+  const canCreateCloudWorkspace = useCanCreateCloudWorkspace();
+  const enableLocalWorkspace = useLiveData(
+    defaultServerService.server.config$.selector(
+      c =>
+        c.features.includes(ServerFeature.LocalWorkspace) ||
+        BUILD_CONFIG.isNative
+    )
+  );
+  const canCreateWorkspace = enableLocalWorkspace || canCreateCloudWorkspace;
 
   const quitAndInstall = desktopApiService?.handler.updater.quitAndInstall;
 
@@ -169,12 +183,13 @@ export function useRegisterWorkspaceCommands() {
       globalDialogService,
       pageHelper: pageHelper,
       t,
+      canCreateWorkspace,
     });
 
     return () => {
       unsub();
     };
-  }, [store, pageHelper, t, globalDialogService]);
+  }, [store, pageHelper, t, globalDialogService, canCreateWorkspace]);
 
   // register AffineHelpCommands
   useEffect(() => {

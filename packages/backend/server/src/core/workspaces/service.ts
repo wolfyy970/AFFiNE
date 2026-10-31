@@ -1,7 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { getStreamAsBuffer } from 'get-stream';
 
-import { Cache, JobQueue, NotFound, URLHelper } from '../../base';
+import {
+  ActionForbidden,
+  Cache,
+  Config,
+  JobQueue,
+  NotFound,
+  URLHelper,
+} from '../../base';
 import {
   DEFAULT_WORKSPACE_AVATAR,
   DEFAULT_WORKSPACE_NAME,
@@ -9,6 +16,7 @@ import {
 } from '../../models';
 import { BackendRuntimeProvider } from '../backend-runtime';
 import { DocReader } from '../doc';
+import { FeatureService } from '../features';
 import { Mailer } from '../mail';
 import type { SendMailCommand } from '../mail/types';
 import { WorkspaceRole } from '../permission';
@@ -35,8 +43,31 @@ export class WorkspaceService {
     private readonly mailer: Mailer,
     private readonly queue: JobQueue,
     private readonly quotaState: QuotaStateService,
-    private readonly runtime: BackendRuntimeProvider
+    private readonly runtime: BackendRuntimeProvider,
+    private readonly config: Config,
+    private readonly feature: FeatureService
   ) {}
+
+  /**
+   * Authoritative gate for creating a cloud workspace.
+   * All client creation paths (UI create, enable-cloud, import-to-new, etc.)
+   * go through the createWorkspace GraphQL mutation which must call this.
+   */
+  async assertCanCreateWorkspace(userId: string): Promise<void> {
+    if (await this.canCreateWorkspace(userId)) {
+      return;
+    }
+    throw new ActionForbidden(
+      'Only instance administrators can create cloud workspaces.'
+    );
+  }
+
+  async canCreateWorkspace(userId: string): Promise<boolean> {
+    if (this.config.flags.allowNonAdminWorkspaceCreate) {
+      return true;
+    }
+    return this.feature.isAdmin(userId);
+  }
 
   async getInviteInfo(inviteId: string): Promise<InviteInfo> {
     // invite link

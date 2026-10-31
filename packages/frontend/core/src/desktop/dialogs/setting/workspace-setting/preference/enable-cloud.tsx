@@ -1,5 +1,6 @@
 import { SettingRow } from '@affine/component/setting-components';
 import { Button } from '@affine/component/ui/button';
+import { useCanCreateCloudWorkspace } from '@affine/core/components/hooks/affine/use-can-create-cloud-workspace';
 import { useEnableCloud } from '@affine/core/components/hooks/affine/use-enable-cloud';
 import {
   type Workspace,
@@ -21,6 +22,7 @@ export const EnableCloudPanel = ({
 }) => {
   const t = useI18n();
   const confirmEnableCloud = useEnableCloud();
+  const canCreateCloudWorkspace = useCanCreateCloudWorkspace();
 
   const workspace = useService(WorkspaceService).workspace;
   const name = useLiveData(workspace.name$);
@@ -35,7 +37,7 @@ export const EnableCloudPanel = ({
     });
   }, [confirmEnableCloud, onCloseSetting, workspace]);
 
-  if (flavour !== 'local') {
+  if (flavour !== 'local' || !canCreateCloudWorkspace) {
     return null;
   }
 

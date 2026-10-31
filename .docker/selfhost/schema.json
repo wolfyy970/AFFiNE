@@ -968,6 +968,11 @@
           "type": "boolean",
           "description": "Whether allow guest users to create demo workspaces.\n@default true",
           "default": true
+        },
+        "allowNonAdminWorkspaceCreate": {
+          "type": "boolean",
+          "description": "Whether non-admin signed-in users can create cloud workspaces. When false, only instance administrators can create cloud workspaces (local workspaces are unaffected).\n@default false",
+          "default": false
         }
       }
     },
