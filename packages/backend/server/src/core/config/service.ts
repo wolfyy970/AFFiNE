@@ -152,10 +152,7 @@ export class ServerService implements OnApplicationBootstrap {
     } else {
       this.disableFeature(ServerFeature.LocalWorkspace);
     }
-    if (flags.allowNonAdminWorkspaceCreate) {
-      this.enableFeature(ServerFeature.CreateWorkspace);
-    } else {
-      this.disableFeature(ServerFeature.CreateWorkspace);
-    }
+    // Workspace creation permission is per-user (UserType.canCreateWorkspace),
+    // not a server-wide feature flag mirrored here.
   }
 }

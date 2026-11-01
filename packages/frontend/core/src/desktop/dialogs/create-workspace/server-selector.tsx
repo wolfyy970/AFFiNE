@@ -153,7 +153,7 @@ const ServerSelectorItem = ({
     onSelect?.(server.id);
   }, [onSelect, server.id]);
 
-  if (!canCreate) {
+  if (canCreate !== true) {
     return null;
   }
 

@@ -19,6 +19,7 @@ import { WorkspaceRealtimeModule } from './realtime.module';
 import {
   DocHistoryResolver,
   DocResolver,
+  UserWorkspaceCapabilityResolver,
   WorkspaceBlobResolver,
   WorkspaceDocResolver,
   WorkspaceMemberResolver,
@@ -49,6 +50,7 @@ import { WorkspaceStatsJob } from './stats.job';
     DocResolver,
     DocHistoryResolver,
     WorkspaceBlobResolver,
+    UserWorkspaceCapabilityResolver,
     WorkspaceService,
     InviteAbuseDispositionService,
     InviteQuotaAssertService,

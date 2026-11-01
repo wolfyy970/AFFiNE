@@ -187,6 +187,8 @@ export interface CurrentUserProfileSnapshot {
   hasPassword: boolean | null;
   avatarUrl: string | null;
   features: string[];
+  /** Same rules as createWorkspace mutation; omit while loading/stale cache. */
+  canCreateWorkspace?: boolean;
 }
 
 export interface UserSettingsSnapshot {

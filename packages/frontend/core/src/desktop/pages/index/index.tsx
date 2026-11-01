@@ -1,6 +1,8 @@
+import { Button } from '@affine/component/ui/button';
 import { useCanCreateCloudWorkspace } from '@affine/core/components/hooks/affine/use-can-create-cloud-workspace';
 import { DefaultServerService } from '@affine/core/modules/cloud';
 import { DesktopApiService } from '@affine/core/modules/desktop-api';
+import { GlobalDialogService } from '@affine/core/modules/dialogs';
 import { WorkspacesService } from '@affine/core/modules/workspace';
 import {
   buildShowcaseWorkspace,
@@ -54,6 +56,7 @@ export const Component = ({
   const [createAttempt, setCreateAttempt] = useState(0);
   const authService = useService(AuthService);
   const defaultServerService = useService(DefaultServerService);
+  const globalDialogService = useService(GlobalDialogService);
 
   const loggedIn = useLiveData(
     authService.session.status$.map(s => s === 'authenticated')
@@ -79,7 +82,7 @@ export const Component = ({
 
   const createCloudWorkspace = useCallback(() => {
     if (createOnceRef.current) return;
-    if (!canCreateCloudWorkspace) return;
+    if (canCreateCloudWorkspace !== true) return;
     createOnceRef.current = true;
     // TODO: support selfhosted
     buildShowcaseWorkspace(workspacesService, 'affine-cloud', 'AFFiNE Cloud')
@@ -99,12 +102,36 @@ export const Component = ({
     workspacesService,
   ]);
 
+  const openCreateWorkspace = useCallback(() => {
+    if (canCreateCloudWorkspace !== true) return;
+    globalDialogService.open('create-workspace', {}, payload => {
+      if (!payload) return;
+      if (payload.defaultDocId) {
+        jumpToPage(payload.metadata.id, payload.defaultDocId);
+      } else {
+        openPage(payload.metadata.id, defaultIndexRoute);
+      }
+    });
+  }, [
+    canCreateCloudWorkspace,
+    defaultIndexRoute,
+    globalDialogService,
+    jumpToPage,
+    openPage,
+  ]);
+
   useLayoutEffect(() => {
     if (!navigating) {
       return;
     }
 
     if (listIsLoading) {
+      return;
+    }
+
+    // Wait until create capability is known so an admin never lands on a
+    // dead-end empty state while the session profile is still loading.
+    if (loggedIn && list.length === 0 && canCreateCloudWorkspace === null) {
       return;
     }
 
@@ -144,6 +171,7 @@ export const Component = ({
       openPage(openWorkspace.id, defaultIndexRoute, RouteLogic.REPLACE);
     }
   }, [
+    canCreateCloudWorkspace,
     enableLocalWorkspace,
     createCloudWorkspace,
     list,
@@ -214,7 +242,89 @@ export const Component = ({
     return fallback ?? <AppContainer fallback />;
   }
 
-  // TODO(@eyhn): We need a no workspace page
+  // Zero workspaces: admin (or anyone allowed) gets Create; others get invite hint.
+  if (list.length === 0 && loggedIn && !enableLocalWorkspace) {
+    if (canCreateCloudWorkspace === true) {
+      return (
+        children ?? (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 16,
+              padding: 24,
+              textAlign: 'center',
+            }}
+          >
+            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600 }}>
+              Create your first workspace
+            </h1>
+            <p style={{ margin: 0, maxWidth: 360, opacity: 0.75 }}>
+              You don&apos;t have any workspaces yet. Create one to get started.
+            </p>
+            <Button
+              variant="primary"
+              size="large"
+              data-testid="empty-create-workspace"
+              onClick={openCreateWorkspace}
+            >
+              Create workspace
+            </Button>
+            <div style={{ marginTop: 8 }}>
+              <WorkspaceNavigator
+                open={true}
+                menuContentOptions={{
+                  forceMount: true,
+                }}
+              />
+            </div>
+          </div>
+        )
+      );
+    }
+
+    if (canCreateCloudWorkspace === false) {
+      return (
+        children ?? (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+              padding: 24,
+              textAlign: 'center',
+            }}
+            data-testid="empty-no-workspace-access"
+          >
+            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600 }}>
+              No workspaces yet
+            </h1>
+            <p style={{ margin: 0, maxWidth: 400, opacity: 0.75 }}>
+              You don&apos;t have access to any workspaces yet. Ask the admin to
+              invite you.
+            </p>
+            <div style={{ marginTop: 8 }}>
+              <WorkspaceNavigator
+                open={true}
+                menuContentOptions={{
+                  forceMount: true,
+                }}
+              />
+            </div>
+          </div>
+        )
+      );
+    }
+  }
+
   return (
     children ?? (
       <div

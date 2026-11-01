@@ -2252,7 +2252,6 @@ enum ServerFeature {
   Comment
   Copilot
   CopilotEmbedding
-  CreateWorkspace
   Indexer
   LocalWorkspace
   OAuth
@@ -2582,6 +2581,11 @@ type UserType {
   """User avatar url"""
   avatarUrl: String
   calendarAccounts: [CalendarAccountObjectType!]!
+
+  """
+  Whether this user may create a cloud workspace. Same rules as the createWorkspace mutation guard.
+  """
+  canCreateWorkspace: Boolean!
   copilot(workspaceId: String): Copilot!
 
   """User email verified"""

@@ -1,8 +1,4 @@
-import {
-  createWorkspaceMutation,
-  serverConfigQuery,
-  ServerFeature,
-} from '@affine/graphql';
+import { createWorkspaceMutation, getCurrentUserQuery } from '@affine/graphql';
 
 import { ConfigFactory, EventBus } from '../../../base';
 import { WorkspaceRole } from '../../../models';
@@ -26,27 +22,7 @@ e2e.afterEach.always(async () => {
 });
 
 e2e(
-  'should expose CreateWorkspace server feature when non-admin create is allowed',
-  async t => {
-    await setAllowNonAdminWorkspaceCreate(true);
-
-    const { serverConfig } = await app.gql({ query: serverConfigQuery });
-    t.true(serverConfig.features.includes(ServerFeature.CreateWorkspace));
-  }
-);
-
-e2e(
-  'should hide CreateWorkspace server feature when non-admin create is denied',
-  async t => {
-    await setAllowNonAdminWorkspaceCreate(false);
-
-    const { serverConfig } = await app.gql({ query: serverConfigQuery });
-    t.false(serverConfig.features.includes(ServerFeature.CreateWorkspace));
-  }
-);
-
-e2e(
-  'admin can create a cloud workspace when non-admin create is denied',
+  'currentUser.canCreateWorkspace is true for admin when non-admin create is denied',
   async t => {
     await setAllowNonAdminWorkspaceCreate(false);
 
@@ -54,6 +30,50 @@ e2e(
       feature: 'administrator',
     });
     await app.login(admin);
+
+    const { currentUser } = await app.gql({ query: getCurrentUserQuery });
+    t.true(currentUser?.canCreateWorkspace);
+  }
+);
+
+e2e(
+  'currentUser.canCreateWorkspace is false for non-admin when create is denied',
+  async t => {
+    await setAllowNonAdminWorkspaceCreate(false);
+
+    const user = await app.create(Mockers.User);
+    await app.login(user);
+
+    const { currentUser } = await app.gql({ query: getCurrentUserQuery });
+    t.false(currentUser?.canCreateWorkspace);
+  }
+);
+
+e2e(
+  'currentUser.canCreateWorkspace is true for non-admin when allowNonAdminWorkspaceCreate is enabled',
+  async t => {
+    await setAllowNonAdminWorkspaceCreate(true);
+
+    const user = await app.create(Mockers.User);
+    await app.login(user);
+
+    const { currentUser } = await app.gql({ query: getCurrentUserQuery });
+    t.true(currentUser?.canCreateWorkspace);
+  }
+);
+
+e2e(
+  'admin with zero workspaces can create a cloud workspace when non-admin create is denied',
+  async t => {
+    await setAllowNonAdminWorkspaceCreate(false);
+
+    const admin = await app.create(Mockers.User, {
+      feature: 'administrator',
+    });
+    await app.login(admin);
+
+    const { currentUser } = await app.gql({ query: getCurrentUserQuery });
+    t.true(currentUser?.canCreateWorkspace);
 
     const result = await app.gql({ query: createWorkspaceMutation });
     t.is(typeof result.createWorkspace.id, 'string');
@@ -65,6 +85,9 @@ e2e('non-admin is refused when creating a cloud workspace', async t => {
 
   const user = await app.create(Mockers.User);
   await app.login(user);
+
+  const { currentUser } = await app.gql({ query: getCurrentUserQuery });
+  t.false(currentUser?.canCreateWorkspace);
 
   const res = await app
     .POST('/graphql')
@@ -92,7 +115,7 @@ e2e(
 );
 
 e2e(
-  'invited member can still edit a shared workspace when create is denied',
+  'invited member can still accept/use a shared workspace when create is denied',
   async t => {
     await setAllowNonAdminWorkspaceCreate(false);
 
@@ -111,6 +134,9 @@ e2e(
 
     // Member must not be able to create a new cloud workspace.
     await app.login(member);
+    const { currentUser } = await app.gql({ query: getCurrentUserQuery });
+    t.false(currentUser?.canCreateWorkspace);
+
     const createRes = await app
       .POST('/graphql')
       .send({

@@ -55,7 +55,7 @@ export const CreateWorkspaceDialog = ({
   );
   const defaultFlavour = useMemo(() => {
     if (serverId) return serverId;
-    if (canCreateCloudWorkspace) return 'affine-cloud';
+    if (canCreateCloudWorkspace === true) return 'affine-cloud';
     if (enableLocalWorkspace) return 'local';
     return 'affine-cloud';
   }, [canCreateCloudWorkspace, enableLocalWorkspace, serverId]);

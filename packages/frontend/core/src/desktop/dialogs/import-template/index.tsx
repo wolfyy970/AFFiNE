@@ -139,7 +139,7 @@ const Dialog = ({
   ]);
 
   const handleImportToNewWorkspace = useAsyncCallback(async () => {
-    if (!templateDownloader.data$.value || !canCreateCloudWorkspace) {
+    if (!templateDownloader.data$.value || canCreateCloudWorkspace !== true) {
       return;
     }
     setImporting(true);
@@ -224,7 +224,7 @@ const Dialog = ({
               workspace: selectedWorkspaceName,
             })}
         </Button>
-      ) : canCreateCloudWorkspace ? (
+      ) : canCreateCloudWorkspace === true ? (
         <Button
           className={styles.mainButton}
           variant="primary"

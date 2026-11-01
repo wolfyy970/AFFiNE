@@ -91,7 +91,8 @@ export function useRegisterWorkspaceCommands() {
         BUILD_CONFIG.isNative
     )
   );
-  const canCreateWorkspace = enableLocalWorkspace || canCreateCloudWorkspace;
+  const canCreateWorkspace =
+    enableLocalWorkspace || canCreateCloudWorkspace === true;
 
   const quitAndInstall = desktopApiService?.handler.updater.quitAndInstall;
 

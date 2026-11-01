@@ -83,7 +83,7 @@ export const UserWithWorkspaceList = ({
       defaultServerService.server.config$.value.features.includes(
         ServerFeature.LocalWorkspace
       );
-    if (!enableLocalWorkspace && !canCreateCloudWorkspace) {
+    if (!enableLocalWorkspace && canCreateCloudWorkspace !== true) {
       return;
     }
     if (!isAuthenticated && !enableLocalWorkspace) {
