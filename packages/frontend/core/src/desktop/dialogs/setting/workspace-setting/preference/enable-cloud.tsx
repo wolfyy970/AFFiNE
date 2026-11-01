@@ -37,7 +37,7 @@ export const EnableCloudPanel = ({
     });
   }, [confirmEnableCloud, onCloseSetting, workspace]);
 
-  if (flavour !== 'local' || !canCreateCloudWorkspace) {
+  if (flavour !== 'local' || canCreateCloudWorkspace !== true) {
     return null;
   }
 

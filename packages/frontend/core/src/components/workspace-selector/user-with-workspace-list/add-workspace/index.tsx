@@ -25,7 +25,9 @@ export const AddWorkspace = ({
     )
   );
   const canCreateCloudWorkspace = useCanCreateCloudWorkspace();
-  const canCreateWorkspace = enableLocalWorkspace || canCreateCloudWorkspace;
+  // Only show Create once capability is known true (or local create is allowed).
+  const canCreateWorkspace =
+    enableLocalWorkspace || canCreateCloudWorkspace === true;
 
   return (
     <>

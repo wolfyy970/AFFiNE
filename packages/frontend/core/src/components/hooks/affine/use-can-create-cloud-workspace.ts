@@ -2,7 +2,6 @@ import {
   DefaultServerService,
   type Server,
   ServerService,
-  UserFeatureService,
 } from '@affine/core/modules/cloud';
 import {
   useLiveData,
@@ -12,21 +11,33 @@ import {
 
 /**
  * Whether the current user may create a cloud workspace on the given server
- * (or the scoped/default server). Driven by server `CreateWorkspace` feature
- * and/or instance admin — same rules as the server-side guard.
+ * (or the scoped/default server).
+ *
+ * Source of truth: `currentUser.canCreateWorkspace` from the session query,
+ * resolved by the same WorkspaceService.canCreateWorkspace used by the
+ * createWorkspace mutation guard.
+ *
+ * Returns:
+ * - `true` / `false` when the capability is known
+ * - `null` while the session profile is still loading / stale (do not treat as false)
  */
-export function useCanCreateCloudWorkspace(server?: Server) {
+export function useCanCreateCloudWorkspace(server?: Server): boolean | null {
   const defaultServerService = useService(DefaultServerService);
   const scopedServer = useServiceOptional(ServerService)?.server;
   const target = server ?? scopedServer ?? defaultServerService.server;
 
-  const allowNonAdmin = useLiveData(
-    target.features$.map(features => !!features?.createworkspace)
-  );
+  const account = useLiveData(target.account$);
 
-  const userFeatureService = useServiceOptional(UserFeatureService);
-  const isAdmin =
-    useLiveData(userFeatureService?.userFeature.isAdmin$) ?? false;
+  if (!account) {
+    // Unauthenticated — cannot create a cloud workspace.
+    return false;
+  }
 
-  return !!(allowNonAdmin || isAdmin);
+  const value = account.info?.canCreateWorkspace;
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  // Authenticated but profile not yet carrying the field (loading / stale cache).
+  return null;
 }

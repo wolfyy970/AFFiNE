@@ -135,7 +135,7 @@ export const Component = () => {
   ]);
 
   const handleImportToNewWorkspace = useAsyncCallback(async () => {
-    if (!clipperInputSnapshot || !canCreateCloudWorkspace) {
+    if (!clipperInputSnapshot || canCreateCloudWorkspace !== true) {
       return;
     }
     setImporting(true);
@@ -275,7 +275,7 @@ export const Component = () => {
                 workspace: selectedWorkspaceName,
               })}
           </Button>
-        ) : canCreateCloudWorkspace ? (
+        ) : canCreateCloudWorkspace === true ? (
           <Button
             className={styles.mainButton}
             variant="primary"

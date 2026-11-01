@@ -43,7 +43,7 @@ export const useEnableCloud = () => {
       try {
         if (!ws) return;
         if (!account) return;
-        if (!canCreateCloudWorkspace) {
+        if (canCreateCloudWorkspace !== true) {
           notify.error({
             title: t['com.affine.workspace.enable-cloud.failed'](),
           });
@@ -90,7 +90,7 @@ export const useEnableCloud = () => {
 
   const confirmEnableCloud = useCallback(
     (ws: Workspace, options?: ConfirmEnableCloudOptions) => {
-      if (!canCreateCloudWorkspace) {
+      if (canCreateCloudWorkspace !== true) {
         options?.onFinished?.();
         return;
       }

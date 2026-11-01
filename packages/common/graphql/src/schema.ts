@@ -2935,7 +2935,6 @@ export enum ServerFeature {
   Comment = 'Comment',
   Copilot = 'Copilot',
   CopilotEmbedding = 'CopilotEmbedding',
-  CreateWorkspace = 'CreateWorkspace',
   Indexer = 'Indexer',
   LocalWorkspace = 'LocalWorkspace',
   OAuth = 'OAuth',
@@ -3280,6 +3279,10 @@ export interface UserType {
   /** User avatar url */
   avatarUrl: Maybe<Scalars['String']['output']>;
   calendarAccounts: Array<CalendarAccountObjectType>;
+  /**
+   * Whether this user may create a cloud workspace. Same rules as the createWorkspace mutation guard.
+   */
+  canCreateWorkspace: Scalars['Boolean']['output'];
   copilot: Copilot;
   /**
    * User email verified
@@ -6104,6 +6107,7 @@ export type GetCurrentUserQuery = {
     avatarUrl: string | null;
     hasPassword: boolean | null;
     features: Array<FeatureType>;
+    canCreateWorkspace: boolean;
   } | null;
 };
 
