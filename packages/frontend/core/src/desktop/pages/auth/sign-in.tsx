@@ -3,6 +3,7 @@ import { AffineOtherPageLayout } from '@affine/component/affine-other-page-layou
 import { SignInPageContainer } from '@affine/component/auth-components';
 import { SignInPanel } from '@affine/core/components/sign-in';
 import { SignInBackgroundArts } from '@affine/core/components/sign-in/background-arts';
+import { AFFINE_SELF_HOSTED_CREDIT } from '@affine/core/modules/cloud';
 import type { AuthSessionStatus } from '@affine/core/modules/cloud/entities/session';
 import { useI18n } from '@affine/i18n';
 import { useCallback, useEffect } from 'react';
@@ -78,7 +79,7 @@ export const SignIn = ({
 
 export const Component = () => {
   return (
-    <AffineOtherPageLayout>
+    <AffineOtherPageLayout hideMarketingNav credit={AFFINE_SELF_HOSTED_CREDIT}>
       <SignInBackgroundArts />
       <SignIn />
     </AffineOtherPageLayout>

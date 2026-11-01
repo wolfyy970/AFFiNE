@@ -46,6 +46,13 @@
 <img src="https://github.com/toeverything/AFFiNE/assets/79301703/49a426bb-8d2b-4216-891a-fa5993642253" style="width: 100%"/>
 </div>
 
+## Our changes (BetaBeta fork)
+
+This repository is a self-hosted fork of AFFiNE (`betabeta`, based on v0.27.4) for [projects.betabeta.dev](https://projects.betabeta.dev). Notable fork changes:
+
+- **Admin-only cloud workspace creation** — Invited members cannot create new cloud workspaces on the shared host (config: `flags.allowNonAdminWorkspaceCreate`, default `false`).
+- **Sign-in branding** — Web sign-in uses the product name **BetaBetaProjects** (from `server.name` / `PRODUCT_NAME`), drops the marketing top nav, and shows a small “AFFiNE self-hosted” credit instead of full AFFiNE Cloud chrome.
+
 ## Getting started & staying tuned with us.
 
 Star us, and you will receive all release notifications from GitHub without any delay!

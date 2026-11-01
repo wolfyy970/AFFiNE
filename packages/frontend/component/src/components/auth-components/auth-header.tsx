@@ -8,13 +8,16 @@ export const AuthHeader: FC<{
   title: string;
   subTitle?: string;
   className?: string;
-}> = ({ title, subTitle, className }) => {
+  /** When false, hides the AFFiNE triangle next to the title. */
+  showLogo?: boolean;
+}> = ({ title, subTitle, className, showLogo = true }) => {
   return (
     <div className={clsx(authHeaderWrapper, className)}>
       <p>
-        <Logo1Icon className="logo" />
+        {showLogo ? <Logo1Icon className="logo" /> : null}
         {title}
       </p>
+      {/* Always render so title keeps first-of-type styles when subtitle is empty */}
       <p>{subTitle}</p>
     </div>
   );

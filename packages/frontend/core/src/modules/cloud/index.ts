@@ -4,6 +4,11 @@ export type { AuthAccountInfo } from './entities/session';
 export { AccountChanged } from './events/account-changed';
 export { AccountLoggedIn } from './events/account-logged-in';
 export { AccountLoggedOut } from './events/account-logged-out';
+export {
+  AFFINE_SELF_HOSTED_CREDIT,
+  getSignInTitle,
+  PRODUCT_NAME,
+} from './product-branding';
 export { AuthProvider } from './provider/auth';
 export { ValidatorProvider } from './provider/validator';
 export {

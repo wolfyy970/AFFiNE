@@ -4,7 +4,7 @@ import {
   ServerFeature,
 } from '@affine/graphql';
 
-import { DEFAULT_SELF_HOSTED_SERVER_NAME } from './server-name';
+import { PRODUCT_NAME } from './product-branding';
 import type { ServerConfig, ServerMetadata } from './types';
 
 export const BUILD_IN_SERVERS: (ServerMetadata & { config: ServerConfig })[] =
@@ -17,7 +17,7 @@ export const BUILD_IN_SERVERS: (ServerMetadata & { config: ServerConfig })[] =
           // this is ok for web app, but not for desktop app
           // since we never build desktop app in selfhosted mode, so it's fine
           config: {
-            serverName: DEFAULT_SELF_HOSTED_SERVER_NAME,
+            serverName: PRODUCT_NAME,
             features: [],
             oauthProviders: [],
             type: ServerDeploymentType.Selfhosted,

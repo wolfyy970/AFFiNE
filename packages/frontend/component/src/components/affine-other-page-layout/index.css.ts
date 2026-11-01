@@ -28,6 +28,26 @@ export const topNav = style({
     },
   },
 });
+/** Minimal chrome: credit only, no marketing links. */
+export const topNavMinimal = style({
+  top: 0,
+  left: 0,
+  right: 0,
+  display: 'flex',
+  position: 'fixed',
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+  padding: '16px 24px',
+  zIndex: 1,
+  pointerEvents: 'none',
+});
+export const affineCredit = style({
+  color: cssVar('textSecondaryColor'),
+  fontSize: cssVar('fontXs'),
+  fontWeight: 500,
+  letterSpacing: '0.02em',
+  opacity: 0.85,
+});
 export const draggableHeader = style({
   height: '52px',
   width: '100%',
