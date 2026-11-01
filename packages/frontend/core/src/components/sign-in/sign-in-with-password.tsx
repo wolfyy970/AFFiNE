@@ -11,7 +11,6 @@ import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hoo
 import {
   AuthService,
   CaptchaService,
-  getSelfHostedServerName,
   ServerService,
 } from '@affine/core/modules/cloud';
 import type { AuthSessionStatus } from '@affine/core/modules/cloud/entities/session';
@@ -27,6 +26,7 @@ import type { SignInState } from '.';
 import { Back } from './back';
 import { Captcha } from './captcha';
 import * as styles from './style.css';
+import { useSignInTitle } from './use-sign-in-title';
 
 export const SignInWithPasswordStep = ({
   state,
@@ -51,17 +51,12 @@ export const SignInWithPasswordStep = ({
   const [passwordErrorHint, setPasswordErrorHint] = useState('');
   const captchaService = useService(CaptchaService);
   const serverService = useService(ServerService);
+  const signInTitle = useSignInTitle();
   const isSelfhosted = useLiveData(
     serverService.server.config$.selector(
       c => c.type === ServerDeploymentType.Selfhosted
     )
   );
-  const serverName = useLiveData(
-    serverService.server.config$.selector(c => c.serverName)
-  );
-  const signInServerName = isSelfhosted
-    ? getSelfHostedServerName(serverName)
-    : serverName;
 
   const verifyToken = useLiveData(captchaService.verifyToken$);
   const needCaptcha = useLiveData(captchaService.needCaptcha$);
@@ -136,10 +131,7 @@ export const SignInWithPasswordStep = ({
 
   return (
     <AuthContainer>
-      <AuthHeader
-        title={t['com.affine.auth.sign.in']()}
-        subTitle={signInServerName}
-      />
+      <AuthHeader title={signInTitle} showLogo={false} />
 
       <AuthContent>
         <form
@@ -183,7 +175,7 @@ export const SignInWithPasswordStep = ({
             style={{ width: '100%' }}
             disabled={isLoading || (!verifyToken && needCaptcha)}
           >
-            {t['com.affine.auth.sign.in']()}
+            Sign in
           </Button>
         </form>
         {!isSelfhosted && (

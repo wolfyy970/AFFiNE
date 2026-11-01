@@ -27,6 +27,7 @@ import type { SignInState } from '.';
 import { Back } from './back';
 import { Captcha } from './captcha';
 import * as style from './style.css';
+import { useSignInTitle } from './use-sign-in-title';
 
 export const SignInWithEmailStep = ({
   state,
@@ -37,6 +38,7 @@ export const SignInWithEmailStep = ({
   changeState: Dispatch<SetStateAction<SignInState>>;
   onAuthenticated?: (status: AuthSessionStatus) => void;
 }) => {
+  const signInTitle = useSignInTitle();
   const initialSent = useRef(false);
   const [resendCountDown, setResendCountDown] = useState(0);
 
@@ -154,7 +156,7 @@ export const SignInWithEmailStep = ({
 
   return !verifyToken && needCaptcha ? (
     <>
-      <AuthHeader title={t['com.affine.auth.sign.in']()} />
+      <AuthHeader title={signInTitle} showLogo={false} />
       <AuthContent style={{ height: 100 }}>
         <Captcha />
       </AuthContent>
@@ -163,8 +165,9 @@ export const SignInWithEmailStep = ({
   ) : (
     <AuthContainer>
       <AuthHeader
-        title={t['com.affine.auth.sign.in']()}
+        title={signInTitle}
         subTitle={t['com.affine.auth.sign.in.sent.email.subtitle']()}
+        showLogo={false}
       />
       <AuthContent>
         <p>

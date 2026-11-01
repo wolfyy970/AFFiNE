@@ -12,8 +12,17 @@ import { MobileNavbar } from './mobile-navbar';
 
 export const AffineOtherPageLayout = ({
   children,
+  hideMarketingNav = false,
+  credit,
 }: {
   children: ReactNode;
+  /**
+   * When true, omit the marketing header (nav links, download) and show only
+   * an optional understated credit in the top-left.
+   */
+  hideMarketingNav?: boolean;
+  /** Optional small credit text when `hideMarketingNav` is set. */
+  credit?: string;
 }) => {
   const t = useI18n();
 
@@ -32,6 +41,12 @@ export const AffineOtherPageLayout = ({
     >
       {BUILD_CONFIG.isElectron ? (
         <div className={styles.draggableHeader} />
+      ) : hideMarketingNav ? (
+        credit ? (
+          <div className={styles.topNavMinimal}>
+            <span className={styles.affineCredit}>{credit}</span>
+          </div>
+        ) : null
       ) : (
         <div className={styles.topNav}>
           <a href="/" rel="noreferrer" className={styles.affineLogo}>

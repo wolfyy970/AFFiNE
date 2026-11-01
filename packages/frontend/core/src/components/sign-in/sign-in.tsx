@@ -8,11 +8,7 @@ import {
 } from '@affine/component/auth-components';
 import { OAuth } from '@affine/core/components/affine/auth/oauth';
 import { useAsyncCallback } from '@affine/core/components/hooks/affine-async-hooks';
-import {
-  AuthService,
-  getSelfHostedServerName,
-  ServerService,
-} from '@affine/core/modules/cloud';
+import { AuthService, ServerService } from '@affine/core/modules/cloud';
 import type { AuthSessionStatus } from '@affine/core/modules/cloud/entities/session';
 import { ServerDeploymentType } from '@affine/graphql';
 import { Trans, useI18n } from '@affine/i18n';
@@ -35,6 +31,7 @@ import { useSelfhostLoginVersionGuard } from '../hooks/affine/use-selfhost-login
 import type { SignInState } from '.';
 import { Back } from './back';
 import * as style from './style.css';
+import { useSignInTitle } from './use-sign-in-title';
 
 const emailRegex =
   /^(?:(?:[^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@(?:(?:\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|((?:[a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -56,18 +53,13 @@ export const SignInStep = ({
 }) => {
   const t = useI18n();
   const serverService = useService(ServerService);
-  const serverName = useLiveData(
-    serverService.server.config$.selector(c => c.serverName)
-  );
+  const signInTitle = useSignInTitle();
   const versionError = useSelfhostLoginVersionGuard(serverService.server);
   const isSelfhosted = useLiveData(
     serverService.server.config$.selector(
       c => c.type === ServerDeploymentType.Selfhosted
     )
   );
-  const signInServerName = isSelfhosted
-    ? getSelfHostedServerName(serverName)
-    : serverName;
   const authService = useService(AuthService);
   const [isMutating, setIsMutating] = useState(false);
 
@@ -144,10 +136,7 @@ export const SignInStep = ({
   if (versionError && isSelfhosted) {
     return (
       <AuthContainer>
-        <AuthHeader
-          title={t['com.affine.auth.sign.in']()}
-          subTitle={signInServerName}
-        />
+        <AuthHeader title={signInTitle} showLogo={false} />
         <AuthContent>
           <div>{versionError}</div>
         </AuthContent>
@@ -157,10 +146,7 @@ export const SignInStep = ({
 
   return (
     <AuthContainer>
-      <AuthHeader
-        title={t['com.affine.auth.sign.in']()}
-        subTitle={signInServerName}
-      />
+      <AuthHeader title={signInTitle} showLogo={false} />
 
       <AuthContent>
         <OAuth redirectUrl={state.redirectUrl} />

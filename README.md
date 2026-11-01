@@ -48,10 +48,11 @@
 
 ## Our changes (BetaBeta fork)
 
-This repository is a self-hosted fork of AFFiNE (`betabeta`) for [projects.betabeta.dev](https://projects.betabeta.dev). Notable fork changes:
+This repository is a self-hosted fork of AFFiNE (`betabeta`, based on v0.27.4) for [projects.betabeta.dev](https://projects.betabeta.dev). Notable fork changes:
 
 - **Admin-only cloud workspace creation** — Invited members cannot create new cloud workspaces (`flags.allowNonAdminWorkspaceCreate`, default `false`). The UI reads the same rule as the server via `currentUser.canCreateWorkspace` (resolved by `WorkspaceService.canCreateWorkspace`).
 - Admins with zero workspaces get a Create entry point; non-admins see an invite-only empty state instead of a dead end.
+- **Sign-in branding** — Web sign-in uses the product name **BetaBetaProjects** (from `server.name` / `PRODUCT_NAME`), drops the marketing top nav, and shows a small “AFFiNE self-hosted” credit instead of full AFFiNE Cloud chrome.
 
 ## Getting started & staying tuned with us.
 
