@@ -94,7 +94,7 @@ export const UpgradeToTeam = ({ recurring }: { recurring: string | null }) => {
 
   const canCreateCloudWorkspace = useCanCreateCloudWorkspace();
   const onClickCreateWorkspace = useCallback(() => {
-    if (!canCreateCloudWorkspace) return;
+    if (canCreateCloudWorkspace !== true) return;
     setOpenCreate(true);
   }, [canCreateCloudWorkspace]);
 
@@ -140,7 +140,7 @@ export const UpgradeToTeam = ({ recurring }: { recurring: string | null }) => {
               metas={workspaces}
               onSelect={setSelectedWorkspace}
               onClickCreateWorkspace={onClickCreateWorkspace}
-              canCreateWorkspace={canCreateCloudWorkspace}
+              canCreateWorkspace={canCreateCloudWorkspace === true}
             />
           }
           contentOptions={{

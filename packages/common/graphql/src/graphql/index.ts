@@ -1704,6 +1704,7 @@ export const getCurrentUserQuery = {
     avatarUrl
     hasPassword
     features
+    canCreateWorkspace
   }
 }`,
 };

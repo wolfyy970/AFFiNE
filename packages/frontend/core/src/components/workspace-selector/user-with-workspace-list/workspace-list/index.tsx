@@ -312,7 +312,7 @@ export const AFFiNEWorkspaceList = ({
         workspaces={localWorkspaces}
         onClickWorkspace={handleClickWorkspace}
         onClickEnableCloud={
-          showEnableCloudButton && canCreateCloudWorkspace
+          showEnableCloudButton && canCreateCloudWorkspace === true
             ? onClickEnableCloud
             : undefined
         }
